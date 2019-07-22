@@ -38,6 +38,8 @@ public:
 
     void print_map();
 
+    double getValue(double latitude, double longitude) const;
+
     size_t getWidth() const {
         return width;
     }

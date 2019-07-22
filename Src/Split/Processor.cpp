@@ -1,21 +1,36 @@
+#include <fstream>
 #include "Processor.h"
+#include "../Utils/Cuboid.h"
 
-Processor::Processor(std::pair<double, double> x_range, std::pair<double, double> y_range,
-                     std::pair<double, double> z_range, int x_resolution, int y_resolution, int z_resolution,
-                     int index_x, int index_y, int index_z) {
-
-    this->x_range = x_range;
-    this->y_range = y_range;
-    this->z_range = z_range;
-    this->x_resolution = x_resolution;
-    this->y_resolution = y_resolution;
-    this->z_resolution = z_resolution;
-    this->index_x = index_x;
-    this->index_y = index_y;
-    this->index_z = index_z;
+void Processor::calculate(char *fileBaseName) {
+    Cuboid<bool> cuboid(x_resolution, y_resolution, z_resolution);
+    fill_cuboid(cuboid);
+    print_cuboid(cuboid, fileBaseName);
 }
 
-void Processor::calculate(char *) {
+void Processor::fill_cuboid(Cuboid<bool> &cuboid) const {
+    for (int i = 0; i < x_resolution; ++i) {
+        for (int j = 0; j < y_resolution; ++j) {
+            double height = map.getValue(x_range.first + i * x_step, y_range.first + j * y_step);
+            for (int k = 0; k < z_resolution; ++k) {
+                cuboid.set(i, j, k, z_range.first + k * z_step <= height);
+            }
+        }
+    }
+}
 
+void Processor::print_cuboid(Cuboid<bool> cuboid, char *fileBaseName) {
+    std::string filename = get_filename(fileBaseName);
+    std::ofstream file;
+    file.open(filename, std::ios::out | std::ios::binary);
+    for (const auto &e : cuboid.getVector()) {
+        file << (char) e;
+    }
+    file.close();
+}
+
+std::string Processor::get_filename(char *fileBaseName) {
+    return std::string(fileBaseName) + "_" + std::to_string(index_x) + "_" + std::to_string(index_y) + "_" +
+           std::to_string(index_z) + ".data";
 }
 

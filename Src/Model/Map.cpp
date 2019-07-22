@@ -26,3 +26,9 @@ Map::~Map() {
     }
     free(this->data);
 }
+
+double Map::getValue(double latitude, double longitude) const {
+    int x = (longitude - west_border) / cell_width;
+    int y = (latitude - north_border) / cell_length;
+    return data[y][x];
+}
