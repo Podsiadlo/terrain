@@ -29,6 +29,8 @@ Map::~Map() {
 
 double Map::getValue(double latitude, double longitude) const {
     int x = (longitude - west_border) / cell_width;
-    int y = (latitude - north_border) / cell_length;
+    int y = (north_border - latitude) / cell_length;
+    if (x == width) --x;
+    if (y == length) --y;
     return data[y][x];
 }

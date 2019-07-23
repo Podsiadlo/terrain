@@ -2,6 +2,7 @@
 #include "Utils/Utils.h"
 #include "Model/Map.h"
 #include "Readers/SrtmReader.h"
+#include "Split/Processor.h"
 
 void set_default_config(Utils::config *config);
 
@@ -14,12 +15,32 @@ int main() {
     Map *map;
     SrtmReader *reader = new SrtmReader();
     map = reader->read_SRTM(config->west_border, config->north_border, config->east_border, config->south_border,
-                        config->map_dir);
+                            config->map_dir);
 
-    map->print_map();
+    double proc_width = fabs(config->west_border - config->east_border) / config->procs_x;
+    double proc_length = fabs(config->north_border - config->south_border) / config->procs_y;
+    double proc_height = config->height / config->procs_z;
+
+    for (int i = 0; i < config->procs_x; ++i) {
+        for (int j = 0; j < config->procs_y; ++j) {
+            for (int k = 0; k < config->procs_z; ++k) {
+                Processor processor(std::pair(config->west_border + i * proc_width,
+                                              config->west_border + (i + 1) * proc_width),
+                                    std::pair(config->south_border + j * proc_length,
+                                              config->south_border + (j + 1) * proc_length),
+                                    std::pair(k * proc_height, (k + 1) * proc_height),
+                                    i, j, k,
+                                    config->point_per_proc_x, config->point_per_proc_y, config->point_per_proc_z,
+                                    map);
+                processor.calculate("test/test");
+            }
+        }
+    }
+
 
     delete map;
     delete reader;
+    delete config;
     return 0;
 }
 
@@ -44,5 +65,8 @@ void set_default_config(Utils::config *config) {
     config->procs_x = 10;
     config->procs_y = 10;
     config->procs_z = 10;
-    config->height = 3000;
+    config->height = 3000.;
+    config->point_per_proc_x = 11;
+    config->point_per_proc_y = 11;
+    config->point_per_proc_z = 11;
 }

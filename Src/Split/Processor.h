@@ -11,7 +11,7 @@ public:
 
     Processor(const std::pair<double, double> &xRange, const std::pair<double, double> &yRange,
               const std::pair<double, double> &zRange, int indexX, int indexY, int indexZ, int xResolution,
-              int yResolution, int zResolution, Map map) : x_range(xRange), y_range(yRange), z_range(zRange), index_x(indexX),
+              int yResolution, int zResolution, Map *map) : x_range(xRange), y_range(yRange), z_range(zRange), index_x(indexX),
                                                            index_y(indexY), index_z(indexZ), x_resolution(xResolution),
                                                            y_resolution(yResolution), z_resolution(zResolution),
                                                            map(map) {
@@ -20,7 +20,7 @@ public:
         z_step = fabs(zRange.first - zRange.second) / (zResolution - 1);
     }
 
-    void calculate(char* fileBaseName);
+    void calculate(std::string fileBaseName);
 
 private:
     std::pair<double, double> x_range;
@@ -35,13 +35,13 @@ private:
     double x_step;
     double y_step;
     double z_step;
-    Map map;
+    Map *map;
 
     void fill_cuboid(Cuboid<bool> &cuboid) const;
 
-    void print_cuboid(Cuboid<bool> cuboid, char * fileBaseName);
+    void print_cuboid(Cuboid<bool> cuboid, std::string fileBaseName);
 
-    std::string get_filename(char *fileBaseName);
+    std::string get_filename(std::string fileBaseName);
 };
 
 

@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <string>
 
 class Utils {
 public:
@@ -14,14 +15,14 @@ public:
     struct config {
         double tolerance;
         size_t requested_size;
-        char *output_filename;
-        char *input_filename;
+        std::string output_filename;
+        std::string input_filename;
         bool read_from_ASC;
         double west_border;
         double north_border;
         double east_border;
         double south_border;
-        char *map_dir;
+        std::string map_dir;
         bool use_inp;
         bool post_utm;
         bool use_height;
@@ -34,7 +35,7 @@ public:
         uint16_t point_per_proc_x;
         uint16_t point_per_proc_y;
         uint16_t point_per_proc_z;
-        int height;
+        double height;
     };
 
     static bool is_lesser(double a, double b);

@@ -16,4 +16,6 @@ add_executable(tergen Src/main.cpp
 #        Src/Model/Point.h
 #        Src/Model/Triangle.cpp
 #        Src/Model/Triangle.h
-        Src/Utils/Utils.cpp Src/Utils/Utils.h Src/Utils/Cuboid.cpp Src/Utils/Cuboid.h)
+        Src/Utils/Utils.cpp
+        Src/Utils/Utils.h
+        Src/Utils/Cuboid.h)

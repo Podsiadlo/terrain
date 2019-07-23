@@ -6,7 +6,7 @@
 #include "../Utils/Utils.h"
 
 Map *SrtmReader::read_SRTM(const double west_border, const double north_border, const double east_border,
-                           const double south_border, const char *map_dir) { // data[row][column] - it's array of rows
+                           const double south_border, const std::string map_dir) { // data[row][column] - it's array of rows
     Utils::swap_if_required((double *) &south_border, (double *) &north_border);
     Utils::swap_if_required((double *) &west_border, (double *) &east_border);
     // Rounding to avoid problems with numerical errors
@@ -30,7 +30,7 @@ Map *SrtmReader::read_SRTM(const double west_border, const double north_border, 
 }
 
 void SrtmReader::read_from_multiple_files(const double west_border, const double north_border, const double east_border,
-                                          const double south_border, const char *map_dir, double **map_data) {
+                                          const double south_border, const std::string map_dir, double **map_data) {
     int first_free_row = 0;
     double north_ptr = north_border;
     double south_ptr = Utils::is_lesser(Utils::floor2(north_border), south_border) ? south_border : Utils::floor2(
@@ -66,8 +66,7 @@ void SrtmReader::read_from_multiple_files(const double west_border, const double
 }
 
 void SrtmReader::read_from_file(int north_border_int, int west_border_int, size_t rows, size_t cols, int first_row,
-                                int first_col,
-                                double **map_data, const char *map_dir) {
+                                int first_col, double **map_data, const std::string map_dir) {
     char file_to_open[256];
     get_filename(file_to_open, map_dir, west_border_int, north_border_int);
 
@@ -104,10 +103,10 @@ void SrtmReader::read_from_file(int north_border_int, int west_border_int, size_
     }
 }
 
-void SrtmReader::skip_outliers(double *const *map_data, size_t length, size_t width) {
+void SrtmReader::skip_outliers(double *const *map_data, size_t length, size_t width) { //TODO: Investigate
     for (int i = 0; i < length; ++i) {
         for (int j = 0; j < width; ++j) {
-            if (map_data[i][j] > 3000 || map_data[i][j] < 10) {
+            if (map_data[i][j] > 5000 || map_data[i][j] < 0) {
                 printf("WARNING: Outliers detected. Skipping...\n");
                 if (i > 0) {
                     map_data[i][j] = map_data[i - 1][j];
@@ -128,7 +127,7 @@ void SrtmReader::skip_outliers(double *const *map_data, size_t length, size_t wi
 }
 
 
-void SrtmReader::get_filename(char *filename, const char *map_dir, int west_border_int, int north_border_int) {
+void SrtmReader::get_filename(char *filename, const std::string map_dir, int west_border_int, int north_border_int) {
     int first_long_to_read;
     int first_lat_to_read;
 
@@ -156,7 +155,7 @@ void SrtmReader::get_filename(char *filename, const char *map_dir, int west_bord
         }
     }
 
-    sprintf(filename, "%s/%s%d%s%.3d.hgt", map_dir,
+    sprintf(filename, "%s/%s%d%s%.3d.hgt", map_dir.data(),
             first_lat_to_read < 0 ? "S" : "N", first_lat_to_read,
             first_long_to_read < 0 ? "W" : "E", first_long_to_read);
 }
