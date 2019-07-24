@@ -38,6 +38,8 @@ public:
         double height;
     };
 
+    static void verify_configs(struct config *config);
+
     static bool is_lesser(double a, double b);
 
     static bool is_greater(double a, double b);
@@ -59,6 +61,8 @@ public:
     static double r2d(double radians);
 
     static void shift(int from, int to, size_t *array);
+
+    static std::pair<double, double> yy_transform(std::pair<double, double> pair);
 };
 
 

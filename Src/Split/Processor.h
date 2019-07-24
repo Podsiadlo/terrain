@@ -11,10 +11,10 @@ public:
 
     Processor(const std::pair<double, double> &xRange, const std::pair<double, double> &yRange,
               const std::pair<double, double> &zRange, int indexX, int indexY, int indexZ, int xResolution,
-              int yResolution, int zResolution, Map *map) : x_range(xRange), y_range(yRange), z_range(zRange), index_x(indexX),
+              int yResolution, int zResolution, Map *map, bool rotate) : x_range(xRange), y_range(yRange), z_range(zRange), index_x(indexX),
                                                            index_y(indexY), index_z(indexZ), x_resolution(xResolution),
                                                            y_resolution(yResolution), z_resolution(zResolution),
-                                                           map(map) {
+                                                           map(map), rotate(rotate) {
         x_step = fabs(xRange.first - xRange.second) / (xResolution - 1);
         y_step = fabs(yRange.first - yRange.second) / (yResolution - 1);
         z_step = fabs(zRange.first - zRange.second) / (zResolution - 1);
@@ -36,6 +36,7 @@ private:
     double y_step;
     double z_step;
     Map *map;
+    bool rotate;
 
     void fill_cuboid(Cuboid<bool> &cuboid) const;
 

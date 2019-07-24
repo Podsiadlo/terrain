@@ -3,6 +3,7 @@
 
 
 #include <cstdlib>
+#include "../Readers/SrtmReader.h"
 
 class Map {
 private:
@@ -26,19 +27,26 @@ private:
 
     char hemisphere;
 
+    SrtmReader *reader;
+
+    bool with_data;
+
 public:
-    Map(double **data, size_t width, size_t length, double cellWidth, double cellLength) : width(width),
-                                                                                                 length(length),
-                                                                                                 cell_width(cellWidth),
-                                                                                                 cell_length(
-                                                                                                         cellLength),
-                                                                                                 data(data) {}
+    Map(SrtmReader *reader) : reader(reader), with_data(false) {}
+
+//    Map(double **data, size_t width, size_t length, double cellWidth, double cellLength) : width(width), length(length),
+//                                                                                           cell_width(cellWidth),
+//                                                                                           cell_length(cellLength),
+//                                                                                           data(data),
+//                                                                                           with_data(true) {}
 
     static double **init_map_data(size_t rows, size_t cols);
 
     void print_map();
 
-    double getValue(double latitude, double longitude) const;
+    double getValue(std::pair<double, double> coordinates) ;
+
+    double getValue(double latitude, double longitude);
 
     size_t getWidth() const {
         return width;

@@ -75,3 +75,38 @@ void Utils::shift(int from, int to, size_t *array) {
     }
 }
 
+void Utils::verify_configs(Utils::config *config) {
+    if (config->east_border < config->west_border) {
+        config->east_border += 360.;
+    }
+}
+
+std::pair<double, double> Utils::yy_transform(std::pair<double, double> coordinates) {
+    std::pair<double, double> result = std::pair<double, double>();
+
+    double x = - cos(coordinates.second * PI / 180.) * sin(coordinates.first * PI / 180.);
+    double y = cos(coordinates.first * PI / 180.);
+    double z = sin(coordinates.first * PI / 180.) * sin(coordinates.second * PI / 180.);
+
+    result.first = acos(z) * 180. / PI;
+
+    if (!Utils::is_greater(fabs(x), 1e-5)) {
+        if (!Utils::is_greater(fabs(y), 1e-5)) {
+            result.second = 0.;
+        } else if (y > 0.) {
+            result.second = 90.;
+        } else if (y < 0.) {
+            result.second = 270.;
+        }
+    } else {
+        result.second = atan(y/x) * 180. / PI;
+        if (x < 0.) {
+            result.second += 180.;
+        } else if (x > 0. && y< 0.) {
+            result.second += 360.;
+        }
+    }
+
+    return result;
+}
+

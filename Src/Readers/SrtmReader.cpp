@@ -5,32 +5,32 @@
 #include "SrtmReader.h"
 #include "../Utils/Utils.h"
 
-Map *SrtmReader::read_SRTM(const double west_border, const double north_border, const double east_border,
-                           const double south_border, const std::string map_dir) { // data[row][column] - it's array of rows
-    Utils::swap_if_required((double *) &south_border, (double *) &north_border);
-    Utils::swap_if_required((double *) &west_border, (double *) &east_border);
-    // Rounding to avoid problems with numerical errors
-    int west_border_int = border_to_int(west_border);
-    int north_border_int = border_to_int(north_border);
-    int east_border_int = border_to_int(east_border);
-    int south_border_int = border_to_int(south_border);
-
-    size_t cols = (size_t) (east_border_int - west_border_int);
-    size_t rows = (size_t) (north_border_int - south_border_int);
-    double **map_data = Map::init_map_data(rows, cols);
-    Map *map = new Map(map_data, cols, rows, 1. / VALUES_IN_DEGREE, 1. / VALUES_IN_DEGREE);
-    map->setNorthBorder(north_border);
-    map->setWestBorder(west_border);
-
-    read_from_multiple_files(west_border, north_border, east_border, south_border, map_dir, map_data);
-
-    skip_outliers(map_data, map->getLength(), map->getWidth());
-
-    return map;
-}
+//Map *SrtmReader::read_SRTM(const double west_border, const double north_border, const double east_border,
+//                           const double south_border) { // data[row][column] - it's array of rows
+//    Utils::swap_if_required((double *) &south_border, (double *) &north_border);
+//    Utils::swap_if_required((double *) &west_border, (double *) &east_border);
+//    // Rounding to avoid problems with numerical errors
+//    int west_border_int = border_to_int(west_border);
+//    int north_border_int = border_to_int(north_border);
+//    int east_border_int = border_to_int(east_border);
+//    int south_border_int = border_to_int(south_border);
+//
+//    size_t cols = (size_t) (east_border_int - west_border_int);
+//    size_t rows = (size_t) (north_border_int - south_border_int);
+//    double **map_data = Map::init_map_data(rows, cols);
+//    Map *map = new Map(map_data, cols, rows, 1. / VALUES_IN_DEGREE, 1. / VALUES_IN_DEGREE);
+//    map->setNorthBorder(north_border);
+//    map->setWestBorder(west_border);
+//
+//    read_from_multiple_files(west_border, north_border, east_border, south_border, map_data);
+//
+//    skip_outliers(map_data, map->getLength(), map->getWidth());
+//
+//    return map;
+//}
 
 void SrtmReader::read_from_multiple_files(const double west_border, const double north_border, const double east_border,
-                                          const double south_border, const std::string map_dir, double **map_data) {
+                                          const double south_border, double **map_data) {
     int first_free_row = 0;
     double north_ptr = north_border;
     double south_ptr = Utils::is_lesser(Utils::floor2(north_border), south_border) ? south_border : Utils::floor2(
@@ -51,8 +51,7 @@ void SrtmReader::read_from_multiple_files(const double west_border, const double
             int west_ptr_int = border_to_int(west_ptr);
             size_t cols_here = (size_t) std::abs(border_to_int(east_ptr) - west_ptr_int);
 
-            read_from_file(north_ptr_int, west_ptr_int, rows_here, cols_here, first_free_row, first_free_col, map_data,
-                           map_dir);
+            read_values(north_ptr_int, west_ptr_int, rows_here, cols_here, first_free_row, first_free_col, map_data);
 
             first_free_col += cols_here;
             west_ptr = Utils::floor2(west_ptr + 1);
@@ -65,13 +64,59 @@ void SrtmReader::read_from_multiple_files(const double west_border, const double
     }
 }
 
-void SrtmReader::read_from_file(int north_border_int, int west_border_int, size_t rows, size_t cols, int first_row,
-                                int first_col, double **map_data, const std::string map_dir) {
+void SrtmReader::read_values(int north_border_int, int west_border_int, size_t rows, size_t cols, int first_row,
+                             int first_col, double **map_data) {
     char file_to_open[256];
-    get_filename(file_to_open, map_dir, west_border_int, north_border_int);
+    get_filename(file_to_open, west_border_int, north_border_int);
+    if (access(file_to_open, F_OK) != -1) { //checks whether file exists
+        read_from_file(north_border_int, west_border_int, file_to_open, rows, cols, first_row, first_col, map_data);
+    } else {
+        read_zeros(rows, cols, first_row, first_col, map_data);
+    }
+}
+
+void SrtmReader::get_filename(char *filename, int west_border_int, int north_border_int) {
+    int first_long_to_read;
+    int first_lat_to_read;
+
+    west_border_int = ((west_border_int + 180 * VALUES_IN_DEGREE) % (360 * VALUES_IN_DEGREE)) - 180 * VALUES_IN_DEGREE;
+
+    if (west_border_int < 0) {
+        if (west_border_int % VALUES_IN_DEGREE != 0) {
+            first_long_to_read = west_border_int / VALUES_IN_DEGREE + 1;
+        } else {
+            first_long_to_read = west_border_int / VALUES_IN_DEGREE;
+        }
+    } else {
+        first_long_to_read = west_border_int / VALUES_IN_DEGREE;
+    }
+
+    if (north_border_int < 0) {
+        if (north_border_int % VALUES_IN_DEGREE != 0) {
+            first_lat_to_read = north_border_int / VALUES_IN_DEGREE + 1;
+        } else {
+            first_lat_to_read = north_border_int / VALUES_IN_DEGREE;
+        }
+    } else {
+        if (north_border_int % VALUES_IN_DEGREE != 0) {
+            first_lat_to_read = north_border_int / VALUES_IN_DEGREE;
+        } else {
+            first_lat_to_read = north_border_int / VALUES_IN_DEGREE - 1;
+        }
+    }
+
+    sprintf(filename, "%s/%s%d%s%.3d.hgt", map_dir.data(),
+            first_lat_to_read < 0 ? "S" : "N", first_lat_to_read,
+            first_long_to_read < 0 ? "W" : "E", first_long_to_read);
+}
+
+
+void
+SrtmReader::read_from_file(int north_border_int, int west_border_int, char *filename, size_t rows, size_t cols,
+                           int first_row, int first_col, double **map_data) {
 
     FILE *map_file;
-    if ((map_file = fopen(file_to_open, "rb")) == NULL) {
+    if ((map_file = fopen(filename, "rb")) == NULL) {
         fprintf(stderr, "%s\n", strerror(errno));
         exit(1);
     }
@@ -103,6 +148,14 @@ void SrtmReader::read_from_file(int north_border_int, int west_border_int, size_
     }
 }
 
+void SrtmReader::read_zeros(size_t rows, size_t cols, int first_row, int first_col, double **map_data) {
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
+            map_data[first_row + i][first_col + j] = 0;
+        }
+    }
+}
+
 void SrtmReader::skip_outliers(double *const *map_data, size_t length, size_t width) { //TODO: Investigate
     for (int i = 0; i < length; ++i) {
         for (int j = 0; j < width; ++j) {
@@ -126,40 +179,23 @@ void SrtmReader::skip_outliers(double *const *map_data, size_t length, size_t wi
     }
 }
 
-
-void SrtmReader::get_filename(char *filename, const std::string map_dir, int west_border_int, int north_border_int) {
-    int first_long_to_read;
-    int first_lat_to_read;
-
-    if (west_border_int < 0) {
-        if (west_border_int % VALUES_IN_DEGREE != 0) {
-            first_long_to_read = west_border_int / VALUES_IN_DEGREE + 1;
-        } else {
-            first_long_to_read = west_border_int / VALUES_IN_DEGREE;
-        }
-    } else {
-        first_long_to_read = west_border_int / VALUES_IN_DEGREE;
-    }
-
-    if (north_border_int < 0) {
-        if (north_border_int % VALUES_IN_DEGREE != 0) {
-            first_lat_to_read = north_border_int / VALUES_IN_DEGREE + 1;
-        } else {
-            first_lat_to_read = north_border_int / VALUES_IN_DEGREE;
-        }
-    } else {
-        if (north_border_int % VALUES_IN_DEGREE != 0) {
-            first_lat_to_read = north_border_int / VALUES_IN_DEGREE;
-        } else {
-            first_lat_to_read = north_border_int / VALUES_IN_DEGREE - 1;
-        }
-    }
-
-    sprintf(filename, "%s/%s%d%s%.3d.hgt", map_dir.data(),
-            first_lat_to_read < 0 ? "S" : "N", first_lat_to_read,
-            first_long_to_read < 0 ? "W" : "E", first_long_to_read);
+int SrtmReader::border_to_int(const double border) const {
+    return (int) round(border * SrtmReader::VALUES_IN_DEGREE);
 }
 
-int SrtmReader::border_to_int(const double border) {
-    return (int) round(border * SrtmReader::VALUES_IN_DEGREE);
+double SrtmReader::read_single_value(const double latitude, const double longitude) {
+    int latitude_int = border_to_int(latitude);
+    int longitude_int = border_to_int(longitude);
+    const std::string filename = get_filename(longitude_int, latitude_int);
+    double result_part1[1];
+    double *result_part2[1];
+    result_part2[0] = result_part1;
+    read_values(latitude_int, longitude_int, 1, 1, 0, 0, result_part2);
+    return result_part2[0][0];
+}
+
+std::string SrtmReader::get_filename(const int west_border_int, const int north_border_int) {
+    char file_to_open[256];
+    get_filename(file_to_open, west_border_int, north_border_int);
+    return std::string(file_to_open);
 }
