@@ -17,6 +17,7 @@ static char *const USAGE = "OPTIONS:\n"
                            "\t-W <west_border>\n"
                            "\t-E <east_border>\n"
                            "\t-h <top_border_in_metres_AMSL>\n"
+                           "\t-o <output_existing_directory_with_trailing_separator_(/_or_\\)>\n"
                            "\n";
 
 void set_default_config(Utils::config *config);
@@ -25,7 +26,7 @@ void parse_arguments(int argc, char **argv, Utils::config *config);
 
 void
 run_processor(const Utils::config *config, Map *map, double proc_width, double proc_length, double proc_height,
-              int i, int j, int k, bool rotate, const char *file_base_name);
+              int i, int j, int k, bool rotate, const std::string file_base_name);
 
 int main(int argc, char **argv) {
     //argument parsing
@@ -46,8 +47,10 @@ int main(int argc, char **argv) {
     for (int i = 0; i < config->procs_x; ++i) {
         for (int j = 0; j < config->procs_y; ++j) {
             for (int k = 0; k < config->procs_z; ++k) {
-                run_processor(config, &map, proc_width, proc_length, proc_height, i, j, k, false, "yang");
-                run_processor(config, &map, proc_width, proc_length, proc_height, i, j, k, true, "yin");
+                run_processor(config, &map, proc_width, proc_length, proc_height, i, j, k, false,
+                              config->output_filename + "yang");
+                run_processor(config, &map, proc_width, proc_length, proc_height, i, j, k, true,
+                              config->output_filename + "yin");
             }
         }
     }
@@ -60,7 +63,7 @@ int main(int argc, char **argv) {
 
 void
 run_processor(const Utils::config *config, Map *map, double proc_width, double proc_length, double proc_height,
-              int i, int j, int k, bool rotate, const char *file_base_name) {
+              int i, int j, int k, bool rotate, std::string file_base_name) {
     Processor processor(std::pair(config->west_border + i * proc_width,
                                   config->west_border + (i + 1) * proc_width),
                         std::pair(config->south_border + j * proc_length,
@@ -76,13 +79,13 @@ run_processor(const Utils::config *config, Map *map, double proc_width, double p
 void set_default_config(Utils::config *config) {
     config->tolerance = 0.00001;
     config->requested_size = SIZE_MAX;
-    config->output_filename = "out/krakow_tol5_iter14";
+    config->output_filename = "out/";
     config->input_filename = "Examples/test1.asc";
     config->read_from_ASC = false;
-    config->west_border = 30.7;
-    config->north_border = 50.2;
-    config->east_border = 30.9;
-    config->south_border = 50.05;
+    config->west_border = -120;
+    config->north_border = 50;
+    config->east_border = 120;
+    config->south_border = -50.0;
     config->map_dir = "Data";
     config->use_inp = false;
     config->use_smesh = false;
@@ -92,8 +95,8 @@ void set_default_config(Utils::config *config) {
     config->use_floater = false;
     config->procs_x = 10;
     config->procs_y = 10;
-    config->procs_z = 10;
-    config->height = 3000.;
+    config->procs_z = 2;
+    config->height = 5000.;
     config->point_per_proc_x = 11;
     config->point_per_proc_y = 11;
     config->point_per_proc_z = 11;
@@ -103,6 +106,7 @@ void parse_arguments(int argc, char **argv, Utils::config *config) {
     int argument;
     if (argc == 1) {
         fprintf(stderr, USAGE);
+        exit(1);
     }
     while ((argument = getopt(argc, argv, "i:j:k:x:y:z:N:S:W:E:d:h:o:")) != -1)
         switch (argument) {
@@ -146,43 +150,6 @@ void parse_arguments(int argc, char **argv, Utils::config *config) {
                 config->output_filename = optarg;
                 break;
 
-
-//            case 't':
-//                config->tolerance = atof(optarg);
-//                break;
-//            case 's': {
-//                double s = atof(optarg);
-//                config->requested_size = (size_t) s * VALUES_IN_DEGREE;
-//            }
-//                break;
-//            case 'i':
-//                config->input_filename = optarg;
-//                config->read_from_ASC = true;
-//                break;
-//            case 'g':
-//                config->post_utm = false;
-//                config->pre_utm = false;
-//                break;
-//            case 'u':
-//                config->pre_utm = true;
-//                config->post_utm = false;
-//                break;
-//            case 'U':
-//                config->pre_utm = false;
-//                config->post_utm = true;
-//                break;
-//            case 'h':
-//                config->use_height = true;
-//                break;
-//            case 'f':
-//                config->use_floater = true;
-//                break;
-//            case 'm':
-//                config->use_smesh = true;
-//                break;
-//            case 'p':
-//                config->use_inp = true;
-//                break;
             case '?':
                 if (optopt == 'i' || optopt == 'j' || optopt == 'k' || optopt == 'o' || optopt == 'd' ||
                     optopt == 'N' || optopt == 'S' || optopt == 'W' || optopt == 'E' || optopt == 'x' ||
