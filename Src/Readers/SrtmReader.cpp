@@ -83,7 +83,7 @@ void SrtmReader::get_filename(char *filename, int west_border_int, int north_bor
 
     if (west_border_int < 0) {
         if (west_border_int % VALUES_IN_DEGREE != 0) {
-            first_long_to_read = west_border_int / VALUES_IN_DEGREE + 1;
+            first_long_to_read = west_border_int / VALUES_IN_DEGREE - 1;
         } else {
             first_long_to_read = west_border_int / VALUES_IN_DEGREE;
         }
@@ -106,8 +106,8 @@ void SrtmReader::get_filename(char *filename, int west_border_int, int north_bor
     }
 
     sprintf(filename, "%s/%s%d%s%.3d.hgt", map_dir.data(),
-            first_lat_to_read < 0 ? "S" : "N", first_lat_to_read,
-            first_long_to_read < 0 ? "W" : "E", first_long_to_read);
+            first_lat_to_read < 0 ? "S" : "N", abs(first_lat_to_read),
+            first_long_to_read < 0 ? "W" : "E", abs(first_long_to_read));
 }
 
 
@@ -123,7 +123,7 @@ SrtmReader::read_from_file(int north_border_int, int west_border_int, char *file
     int cells_in_degree = VALUES_IN_DEGREE + 1;
     if (fseek(map_file,
               (((VALUES_IN_DEGREE - (north_border_int % VALUES_IN_DEGREE)) % VALUES_IN_DEGREE) * cells_in_degree +
-               (west_border_int % VALUES_IN_DEGREE)) *
+               Utils::positive_mod(west_border_int, VALUES_IN_DEGREE)) *
               PIXEL_SIZE,
               SEEK_SET) == -1) {
         fprintf(stderr, "%s\n", strerror(errno));

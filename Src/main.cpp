@@ -17,7 +17,8 @@ static char *const USAGE = "OPTIONS:\n"
                            "\t-W <west_border>\n"
                            "\t-E <east_border>\n"
                            "\t-h <top_border_in_metres_AMSL>\n"
-                           "\t-o <output_existing_directory_with_trailing_separator_(/_or_\\)>\n"
+                           "\t-o <(existing_)output_directory>\n"
+                           "\t-Y  - disables YinYang rotation"
                            "\n";
 
 void set_default_config(Utils::config *config);
@@ -48,9 +49,11 @@ int main(int argc, char **argv) {
         for (int j = 0; j < config->procs_y; ++j) {
             for (int k = 0; k < config->procs_z; ++k) {
                 run_processor(config, &map, proc_width, proc_length, proc_height, i, j, k, false,
-                              config->output_filename + "yang");
-                run_processor(config, &map, proc_width, proc_length, proc_height, i, j, k, true,
-                              config->output_filename + "yin");
+                              config->output_filename + "/yang");
+                if (config->yin_yang) {
+                    run_processor(config, &map, proc_width, proc_length, proc_height, i, j, k, true,
+                                  config->output_filename + "/yin");
+                }
             }
         }
     }
@@ -100,6 +103,7 @@ void set_default_config(Utils::config *config) {
     config->point_per_proc_x = 11;
     config->point_per_proc_y = 11;
     config->point_per_proc_z = 11;
+    config->yin_yang = true;
 }
 
 void parse_arguments(int argc, char **argv, Utils::config *config) {
@@ -108,7 +112,7 @@ void parse_arguments(int argc, char **argv, Utils::config *config) {
         fprintf(stderr, USAGE);
         exit(1);
     }
-    while ((argument = getopt(argc, argv, "i:j:k:x:y:z:N:S:W:E:d:h:o:")) != -1)
+    while ((argument = getopt(argc, argv, "i:j:k:x:y:z:N:S:W:E:d:h:o:Y")) != -1)
         switch (argument) {
             case 'i':
                 config->procs_x = atoi(optarg);
@@ -142,6 +146,10 @@ void parse_arguments(int argc, char **argv, Utils::config *config) {
                 break;
             case 'd':
                 config->map_dir = optarg;
+                if (!Utils::does_file_exists(optarg)) {
+                    fprintf(stderr, "Given data directory does not exist.");
+                    exit(2);
+                }
                 break;
             case 'h':
                 config->height = atoi(optarg);
@@ -149,11 +157,13 @@ void parse_arguments(int argc, char **argv, Utils::config *config) {
             case 'o':
                 config->output_filename = optarg;
                 break;
-
+            case 'Y':
+                config->yin_yang = false;
+                break;
             case '?':
                 if (optopt == 'i' || optopt == 'j' || optopt == 'k' || optopt == 'o' || optopt == 'd' ||
                     optopt == 'N' || optopt == 'S' || optopt == 'W' || optopt == 'E' || optopt == 'x' ||
-                    optopt == 'y' || optopt == 'z' || optopt == 'h') {
+                    optopt == 'y' || optopt == 'z' || optopt == 'h' || optopt == 'Y') {
 
                     fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                     fprintf(stderr, USAGE);

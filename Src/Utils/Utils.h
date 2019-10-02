@@ -36,6 +36,7 @@ public:
         uint16_t point_per_proc_y;
         uint16_t point_per_proc_z;
         double height;
+        bool yin_yang;
     };
 
     static void verify_configs(struct config *config);
@@ -63,6 +64,10 @@ public:
     static void shift(int from, int to, size_t *array);
 
     static std::pair<double, double> yy_transform(std::pair<double, double> pair);
+
+    static int positive_mod(int number, int mod);
+
+    static bool does_file_exists(char *path);
 };
 
 

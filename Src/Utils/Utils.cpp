@@ -1,4 +1,5 @@
 #include <cmath>
+#include <unistd.h>
 #include "Utils.h"
 
 
@@ -109,4 +110,13 @@ std::pair<double, double> Utils::yy_transform(std::pair<double, double> coordina
 
     return result;
 }
+
+int Utils::positive_mod(int number, int mod) {
+    return ((number % mod) + mod) % mod;
+}
+
+bool Utils::does_file_exists(char *path) {
+    return access(path, F_OK) == 0;
+}
+
 
