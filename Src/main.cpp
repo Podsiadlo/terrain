@@ -127,10 +127,10 @@ void parse_arguments(int argc, char **argv, Utils::config *config) {
                 config->point_per_proc_x = atoi(optarg);
                 break;
             case 'y':
-                config->point_per_proc_x = atoi(optarg);
+                config->point_per_proc_y = atoi(optarg);
                 break;
             case 'z':
-                config->point_per_proc_x = atoi(optarg);
+                config->point_per_proc_z = atoi(optarg);
                 break;
             case 'N':
                 config->north_border = atof(optarg);
