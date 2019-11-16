@@ -6,20 +6,20 @@
 template<typename T>
 class Cuboid {
 private:
-    int x_size;
-    int y_size;
-    int z_size;
+    size_t x_size;
+    size_t y_size;
+    size_t z_size;
     std::vector<T> points;
 
 public:
-    Cuboid(int xSize, int ySize, int zSize) : x_size(xSize), y_size(ySize), z_size(zSize),
+    Cuboid(size_t xSize, size_t ySize, size_t zSize) : x_size(xSize), y_size(ySize), z_size(zSize),
                                               points(std::vector<T>(xSize * ySize * zSize)) {}
 
-    void set(int x, int y, int z, T value) {
+    void set(size_t x, size_t y, size_t z, T value) {
         points[getIndex(x, y, z)] = value;
     }
 
-    T get(int x, int y, int z) {
+    T get(size_t x, size_t y, size_t z) {
         return points[getIndex(x, y, z)];
     }
 
@@ -28,7 +28,7 @@ public:
     }
 
 private:
-    int getIndex(int x, int y, int z) {
+    size_t getIndex(size_t x, size_t y, size_t z) {
         return z * x_size * y_size + y * x_size + x;
     }
 };
